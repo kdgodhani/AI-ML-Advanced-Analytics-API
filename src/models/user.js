@@ -17,6 +17,10 @@ const userSchema = new Schema(
         type: String,
         unique: true,
     },
+    phone_number: {
+        type: String,
+        unique: true,
+    },
     password: {
         type: String,
         unique: true,
@@ -26,7 +30,7 @@ const userSchema = new Schema(
     },
     role:{
       type: String,
-      // Enum
+      enum: ['Admin', 'Seller', 'Customer'], // seller is not used in this project 
     }
   },
   {
@@ -35,6 +39,6 @@ const userSchema = new Schema(
 );
 
 
-module.exports = model("user", userSchema);
+module.exports = model("User", userSchema);
 
 
