@@ -97,8 +97,24 @@ const getProductById = async (req, res, next) => {
   }
 };
 
+const getProductByIds = async (id) => {
+  try {
+    // let { productId } = req.query;
+
+    let productData = await Product.findById(id);
+
+    if (productData) {
+      return productData;
+    }
+  } catch (error) {
+    console.log(error, "product.controller -> getProductByIds fn");
+    next(error);
+  }
+};
+
 module.exports = {
   addProduct,
   getAllProductList,
   getProductById,
+  getProductByIds,
 };
