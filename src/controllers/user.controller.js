@@ -7,26 +7,16 @@ const user = require("../models/user");
 const bcrypt = require("bcryptjs");
 // let { encryptData, decryptData } = require("../utils/encrypt");
 
+// Admin User Mannually entry in mongodb
+
+// user_name : "admin",
+// email : "admin@dhiwise.com",
+// password : "$2a$10$eL9Tbhw2YJ3sOoEKLvcYC.aalfT/NKmeiBnuvHVsPhg7lPHmjU.ZK",  // Admin@123
+// role:"Admin",
+
 const userRegister = async (req, res, next) => {
   try {
-    let { firstName, email, lastName, password, role } = req.body;
-
-    // Mannually entry in mongodb
-
-    // first_name : "admin"
-    // last_name : "user"
-    // email : "admin@robro.com"
-    // password : "$2a$10$eL9Tbhw2YJ3sOoEKLvcYC.aalfT/NKmeiBnuvHVsPhg7lPHmjU.ZK"  // Admin@123
-    // role:"Admin"
-
-    // if (!req.user || req.user.userRole) {
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: "Admin Use Role Not Found !!",
-    //     data: [],
-    //   });
-    // }
-
+    let { name, email, password, role } = req.body;
     // let { userRole } = req.user;
 
     // Check if the user making the request is an Admin
@@ -44,7 +34,6 @@ const userRegister = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: "User is already registered",
-        data: [],
       });
     }
 
@@ -53,17 +42,10 @@ const userRegister = async (req, res, next) => {
 
     // Create the new user
     let createUser = await user.create({
-      // first_name: firstName,
-      // last_name: lastName,
-      // email: email,
-      // password: encryptPassword,
-      // role: role,
-
-      first_name: "admin",
-      last_name: "user",
-      email: "admin@robro.com",
-      password: "$2a$10$eL9Tbhw2YJ3sOoEKLvcYC.aalfT/NKmeiBnuvHVsPhg7lPHmjU.ZK", // Admin@123
-      role: "Admin",
+      user_name: name,
+      email: email,
+      password: encryptPassword,
+      role: role ? role : "Customer"
     });
 
     // Return success response with created user data
@@ -109,90 +91,24 @@ const userLogin = async (req, res, next) => {
       }
     );
 
-    let userRoleMapObj = {};
-
-    let objRole = [{ role_name: checkUser.role }];
     let objModule = userMaping[checkUser.role];
-
-    userRoleMapObj.obj_role = objRole;
-    userRoleMapObj.obj_module = objModule ? objModule : [];
 
     finalData.push({
       id: checkUser._id,
       email: checkUser.email,
+      user_name:checkUser.user_name,
       token: token,
-      userRoleMap: userRoleMapObj,
+      user_role:checkUser.role,
+      user_module_map: objModule ? objModule : [],
     });
 
     // Return the token
     return res.status(200).json({
       success: true,
       message: "Logged in successfully",
-      finalData,
+      data:finalData,
     });
 
-    // // Get user input
-    // let { email, password } = req.body
-
-    // let userArr = [{
-    //   Id:1,
-    //   Email:"admin@mail.com",
-    //   Role:"Admin"
-    // },
-    // {
-    //   Id:2,
-    //   Email:"supervisor@mail.com",
-    //   Role:"Supervisor"
-    // },
-    // {
-    //   Id:3,
-    //   Email:"worker@mail.com",
-    //   Role:"Worker"
-    // },]
-
-    // // let getUser = userExist.recordset[0];
-    // let getUser = findUserByEmail(userArr,email);
-
-    // if(!getUser){
-    //       return res.send({
-    //     success: false,
-    //     message: "\User Not Found in Db...",
-    //   });
-    // }
-
-    // let finalData = [];
-
-    // let userInfo = {
-    //   userId: getUser.Id,
-    //   email: getUser.Email,
-    //   userRole: getUser.Role,
-    // };
-
-    // // let userInfoStringfy = JSON.stringify(userInfo);
-
-    // let token = jwt.sign(userInfo, TOKEN_KEY, {
-    //   expiresIn: TOKEN_EXPIRY,
-    // });
-
-    // let userRoleMapObj = {};
-
-    // let objRole = [{ role_name: getUser.Role }];
-    // let objModule = userMaping[getUser.Role];
-
-    // userRoleMapObj.obj_role = objRole;
-    // userRoleMapObj.obj_module = objModule ? objModule : [];
-
-    // finalData.push({
-    //   id: getUser.Id,
-    //   email: getUser.Email,
-    //   userToken: token,
-    //   userRoleMap: userRoleMapObj,
-    // });
-
-    // return res.send({
-    //   success: true,
-    //   data: finalData,
-    // });
   } catch (error) {
     console.log(error, "user.controller -> userLogin");
     next(error);

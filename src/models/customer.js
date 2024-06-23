@@ -12,6 +12,10 @@ const customerSchema = new Schema({
         type: String,
         required: true
     },
+    phone_number: {
+        type: String,
+        unique: true,
+    },
     orders: [{
         type: Schema.Types.ObjectId,
         ref: 'Order'

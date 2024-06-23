@@ -28,7 +28,7 @@ router.post(
   userRegister
 );
 
-router.post("/login", validateBody(createUserSchema), userLogin);
+router.post("/login", validateBody(userLoginSchema), userLogin);
 
 router.post("/resetPassword", verifyToken, userResetPassword);
 
