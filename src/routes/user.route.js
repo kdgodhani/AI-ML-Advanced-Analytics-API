@@ -6,6 +6,7 @@ const { verifyToken } = require("../middlewares/auth");
 const {
   createUserSchema,
   userLoginSchema,
+  modifyUserDetailSchema,
 } = require("../validations/user.validation");
 
 const {
@@ -13,10 +14,12 @@ const {
   validateParams,
 } = require("../validations/joi.validator");
 
-const { userRegister, userLogin } = require("../controllers/user.controller");
+const {
+  userRegister,
+  userLogin,
+  modifyUserDetail,
+} = require("../controllers/user.controller");
 
-// Here Use of VerifyToken Middleware is only Admin can create User in Dashboard
-// Admin Create in DB manually
 router.post(
   "/register",
   // verifyToken,
@@ -26,6 +29,12 @@ router.post(
 
 router.post("/login", validateBody(userLoginSchema), userLogin);
 
+router.post(
+  "/modifyDetail",
+  verifyToken,
+  validateBody(modifyUserDetailSchema),
+  modifyUserDetail
+);
 
 
 

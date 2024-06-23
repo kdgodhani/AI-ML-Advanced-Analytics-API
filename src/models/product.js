@@ -15,6 +15,7 @@ const productSchema = new Schema(
       required: true,
     },
     quantity: {
+      // this quantity is product Stoke
       type: Number,
       default: 0,
     },
@@ -41,9 +42,6 @@ const productSchema = new Schema(
     ],
     image: {
       type: String,
-    },
-    is_active: {
-      type: Boolean,
     },
   },
   {

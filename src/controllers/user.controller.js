@@ -4,16 +4,17 @@ const JWT_SECRET = process.env.JWT_TOKEN;
 const TOKEN_EXPIRY = process.env.TOKEN_EXPIRY;
 let userMaping = require("../constants/role.mapping");
 const User = require("../models/user");
+const UserDetail = require("../models/userDetail");
 const bcrypt = require("bcryptjs");
 // let { encryptData, decryptData } = require("../utils/encrypt");
 
 // Admin User Mannually entry in mongodb
-
 // user_name : "admin",
 // email : "admin@dhiwise.com",
 // password : "$2a$10$eL9Tbhw2YJ3sOoEKLvcYC.aalfT/NKmeiBnuvHVsPhg7lPHmjU.ZK",  // Admin@123
 // role:"Admin",
 
+/**   ---------                User is Customer and Customer is User           ----------------------- */
 const userRegister = async (req, res, next) => {
   try {
     let { name, email, password, role } = req.body;
@@ -46,6 +47,13 @@ const userRegister = async (req, res, next) => {
       email: email,
       password: encryptPassword,
       role: role ? role : "Customer",
+    });
+
+    // On User create add data to UserDetail data with default value null
+
+    // we also add customer data CRUD api
+    await UserDetail.create({
+      user_id: createUser._id,
     });
 
     // Return success response with created user data
@@ -114,7 +122,66 @@ const userLogin = async (req, res, next) => {
   }
 };
 
+const modifyUserDetail = async (req, res, next) => {
+  try {
+    let { houseNumber, city, street, zipcode, phoneNumber } = req.body;
+
+    let { id, email, role } = req.user;
+    // Check if the user already exists
+    let checkUser = await User.findOne({ _id: id });
+    if (!checkUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User Not Found !!",
+      });
+    }
+
+    let existingCustomer = await UserDetail.findOne({ user_id: id });
+
+    if (existingCustomer) {
+      // Update existing customer data
+      let updatedCustomer = await UserDetail.findByIdAndUpdate(
+        existingCustomer._id,
+        {
+          house_number: houseNumber,
+          city: city,
+          street: street,
+          zipcode: zipcode,
+          phone_number: phoneNumber,
+        },
+        { new: true }
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "UserDetail data updated successfully",
+        data: updatedCustomer,
+      });
+    } else {
+      // Create new customer data  / some default value
+      let newCustomer = await UserDetail.create({
+        user_id: id,
+        house_number: 10,
+        city: "Surat",
+        street: "varachha",
+        zipcode: 394101,
+        phone_number: 9876543210,
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: "UserDetail data created successfully",
+        data: newCustomer,
+      });
+    }
+  } catch (error) {
+    console.log(error, "user.controller -> addCustomerDetail");
+    next(error);
+  }
+};
+
 module.exports = {
   userRegister,
   userLogin,
+  modifyUserDetail,
 };
