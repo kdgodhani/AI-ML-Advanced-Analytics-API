@@ -29,35 +29,35 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
+
+// Currently this middleware used for Admin and seller
 const verifyAdmin = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
 
   let err = {};
   if (authHeader) {
     const token = authHeader.split(" ")[1];
-    const userInfo = JSON.parse(
-      Buffer.from(token, "base64").toString("utf-8")
-    );
+    jwt.verify(token, TOKEN_KEY, async (error, user) => {
+      if (error && error.message) {
+        err.message = error.message;
+        err.success = false;
+        return res.status(401).json(err);
+      }
 
-    let pool = await poolPromise;
-    let userExist = await pool
-      .request()
-      .input("id", sql.Int, userInfo.id)
-      .execute("usp_checkUserById");
+      if(user && user.role !== "Admin" ){
+        err.message = "Only Admin Access";
+        err.success = false;
+        return res.status(401).json(err);
+      }
 
-    if (userExist.recordset[0] && userExist.recordset[0].UserExist == 0) {
-      return res.send({
-        success: false,
-        message: "Admin user is only allowed to access this end point !!",
-      });
-    }
-    req.user = userInfo;
-    next();
+      req.user = user;
+      next();
+    });
 
     // });
   } else {
     err.status = 400;
-    err.message = "Missing userInfo";
+    err.message = "Token i";
     err.success = false;
     return res.status(err.status).json(err);
   }

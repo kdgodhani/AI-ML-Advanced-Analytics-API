@@ -1,149 +1,98 @@
 // https://fakestoreapi.com/products     -- data get form this api   electronics
 
-
 "use strict";
-const product = require("../models/product");
+const Product = require("../models/product");
 
 const addProduct = async (req, res, next) => {
   try {
-    // Get user input
-    let { password } = req.body;
+    const {
+      name,
+      description,
+      price,
+      quantity,
+      category,
+      sellerName,
+      reviews,
+      image,
+    } = req.body;
 
-    let { userName: loginUser, id: loginUserId } = req.user;
+    const isProductExits = await Product.findOne({ name: name });
 
-    let pool = await poolPromise;
-    let userExist = await pool
-      .request()
-      .input("userName", sql.NVarChar, loginUser)
-      .execute("usp_checkRegisteredUser");
-
-    if (userExist.recordset[0] && userExist.recordset[0].result == 0) {
-      return res.send({
+    // Checking if product is already created.
+    if (isProductExits) {
+      return res.status(409).json({
         success: false,
-        message: "User detail not found !!",
+        message: "Product already exits.!!",
       });
     }
 
-    let encryptNewPassword = await encryptData(password);
+    // Create and save the product in a single step
+    const productData = await Product.create({
+      name: name,
+      description: description,
+      price: price,
+      quantity: quantity,
+      category: category,
+      seller_name: sellerName,
+      reviews: reviews,
+      image: image,
+    });
 
-    // Create user in our database
-    let updateUser = await pool
-      .request()
-      .input("id", sql.Int, loginUserId)
-      .input("password", sql.NVarChar, encryptNewPassword)
-      .execute("usp_resetPassword");
-
-    let userData = updateUser.recordset;
-
-    if (userData && userData[0] && userData[0].ErrorNumber) {
-      return res.send({
-        success: false,
-        message: "user Password not updated sucessfully",
-      });
-    }
-
-    return res.send({
+    return res.status(201).json({
       success: true,
-      data: userData,
+      message: "Product added successfully",
+      data: productData,
     });
   } catch (error) {
-    console.log(error, "user.controller -> userResetPassword");
+    console.log(error, "product.controller -> addProduct");
     next(error);
   }
 };
 
 const getAllProductList = async (req, res, next) => {
   try {
-    // Get user input
-    let { password } = req.body;
+    let productList = await Product.find();
 
-    let { userName: loginUser, id: loginUserId } = req.user;
-
-    let pool = await poolPromise;
-    let userExist = await pool
-      .request()
-      .input("userName", sql.NVarChar, loginUser)
-      .execute("usp_checkRegisteredUser");
-
-    if (userExist.recordset[0] && userExist.recordset[0].result == 0) {
-      return res.send({
+    if (!productList || productList.length == 0) {
+      return res.status(404).json({
         success: false,
-        message: "User detail not found !!",
+        message: "User is already registered",
       });
     }
 
-    let encryptNewPassword = await encryptData(password);
-
-    // Create user in our database
-    let updateUser = await pool
-      .request()
-      .input("id", sql.Int, loginUserId)
-      .input("password", sql.NVarChar, encryptNewPassword)
-      .execute("usp_resetPassword");
-
-    let userData = updateUser.recordset;
-
-    if (userData && userData[0] && userData[0].ErrorNumber) {
-      return res.send({
-        success: false,
-        message: "user Password not updated sucessfully",
-      });
-    }
-
-    return res.send({
+    // Return success response with created user data
+    return res.status(200).json({
       success: true,
-      data: userData,
+      message: "Product Data Fetched sucessfully",
+      data: productList,
     });
   } catch (error) {
-    console.log(error, "user.controller -> userResetPassword");
+    console.log(error, "product.controller -> getAllProductList");
     next(error);
   }
 };
 
 const getProductById = async (req, res, next) => {
   try {
-    // Get user input
-    let { password } = req.body;
+    let { productId } = req.query;
 
-    let { userName: loginUser, id: loginUserId } = req.user;
+    // Check if the user already exists
+    let productList = await Product.find({ _id: productId });
 
-    let pool = await poolPromise;
-    let userExist = await pool
-      .request()
-      .input("userName", sql.NVarChar, loginUser)
-      .execute("usp_checkRegisteredUser");
-
-    if (userExist.recordset[0] && userExist.recordset[0].result == 0) {
-      return res.send({
+    if (!productList) {
+      return res.status(404).json({
         success: false,
-        message: "User detail not found !!",
+        message: "User is already registered",
       });
     }
 
-    let encryptNewPassword = await encryptData(password);
-
-    // Create user in our database
-    let updateUser = await pool
-      .request()
-      .input("id", sql.Int, loginUserId)
-      .input("password", sql.NVarChar, encryptNewPassword)
-      .execute("usp_resetPassword");
-
-    let userData = updateUser.recordset;
-
-    if (userData && userData[0] && userData[0].ErrorNumber) {
-      return res.send({
-        success: false,
-        message: "user Password not updated sucessfully",
-      });
-    }
-
-    return res.send({
+    return res.status(200).json({
       success: true,
-      data: userData,
+      message: "Product Data Fetched sucessfully",
+      data: productList,
     });
   } catch (error) {
-    console.log(error, "user.controller -> userResetPassword");
+    console.log(error, "product.controller -> getProductById");
     next(error);
   }
 };

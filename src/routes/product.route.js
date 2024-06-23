@@ -1,12 +1,9 @@
 "use strict";
 const express = require("express");
 const router = express.Router();
-const { verifyToken } = require("../middlewares/auth");
+const { verifyToken, verifyAdmin } = require("../middlewares/auth");
 
-const {
-  createUserSchema,
-  userLoginSchema,
-} = require("../validations/user.validation");
+const { addProductSchema } = require("../validations/product.validation");
 
 const { validateBody, validateQuery } = require("../validations/joi.validator");
 
@@ -16,7 +13,7 @@ const {
   getProductById,
 } = require("../controllers/product.controller");
 
-router.post("/add", verifyToken, addProduct);
+router.post("/add", verifyAdmin, validateBody(addProductSchema), addProduct);
 
 router.get("/getAll", verifyToken, getAllProductList);
 

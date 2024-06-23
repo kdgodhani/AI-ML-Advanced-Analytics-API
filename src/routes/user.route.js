@@ -13,11 +13,7 @@ const {
   validateParams,
 } = require("../validations/joi.validator");
 
-const {
-  userRegister,
-  userLogin,
-  userResetPassword,
-} = require("../controllers/user.controller");
+const { userRegister, userLogin } = require("../controllers/user.controller");
 
 // Here Use of VerifyToken Middleware is only Admin can create User in Dashboard
 // Admin Create in DB manually
@@ -30,7 +26,6 @@ router.post(
 
 router.post("/login", validateBody(userLoginSchema), userLogin);
 
-router.post("/resetPassword", verifyToken, userResetPassword);
 
 
 
