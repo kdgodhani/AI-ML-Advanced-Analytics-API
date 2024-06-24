@@ -3,6 +3,12 @@ const Transaction = require("../models/transaction");
 const Order = require("../models/order");
 const cron = require("node-cron");
 
+let {
+  loadTransactions,
+  trainModel,
+  predictDemand,
+} = require("../utils/mlModel");
+
 // now cron run every 55 minute
 cron.schedule("*/55 * * * *", async () => {
   let cronRun = await addFakeData();
@@ -165,7 +171,114 @@ const analyticsData = async (req, res) => {
   }
 };
 
+// same function for ML model generation
+// const analyticsDataFn = async () => {
+//   try {
+//     const transactionData = await Transaction.aggregate([
+//       // { $match: { txn_status: "Success" } },
+//       {
+//         $lookup: {
+//           from: "orders",
+//           localField: "order_id",
+//           foreignField: "_id",
+//           as: "order",
+//         },
+//       },
+//       {
+//         $unwind: "$order",
+//       },
+//       {
+//         $unwind: "$order.products",
+//       },
+//       {
+//         $lookup: {
+//           from: "products",
+//           localField: "order.products.product_id",
+//           foreignField: "_id",
+//           as: "productDetails",
+//         },
+//       },
+//       {
+//         $unwind: "$productDetails",
+//       },
+//       {
+//         $project: {
+//           txn_amount: "$txn_amount",
+//           txn_status: "$txn_status",
+//           payment_method: "$payment_method",
+//           txn_id: "$_id",
+//           txn_date: "$txn_date",
+//           order_id: "$order._id",
+//           product_id: "$order.products.product_id",
+//           product_quantity: "$order.products.product_quantity",
+//           order_status: "$order.order_status",
+//           _id: "$productDetails._id",
+//           name: "$productDetails.name",
+//           // description: "$productDetails.description",
+//           price: "$productDetails.price",
+//           quantity: "$productDetails.quantity",
+//           category: "$productDetails.category",
+//           seller_name: "$productDetails.seller_name",
+//           reviews: "$productDetails.reviews",
+//           image: "$productDetails.image",
+//         },
+//       },
+//     ]).exec();
+
+//     return transactionData;
+//   } catch (error) {
+//     console.error(error);
+//     throw error;
+//   }
+// };
+
+// same function for ML model generation
+const modelTrain = async (req, res, next) => {
+  try {
+    const transactions = await loadTransactions();
+    let trainedData = await trainModel(transactions);
+
+    return res.status(200).json({
+      success: true,
+      message: "Model trained successfully!",
+      data: trainedData,
+    });
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+const predictProduct = async (req, res, next) => {
+  try {
+    const { txn_amount, payment_method, product_id, category } = req.query;
+
+    const transactions = await loadTransactions();
+    await trainModel(transactions);
+
+    const predictedProductId = await predictDemand(
+      Number(txn_amount),
+      payment_method,
+      product_id,
+      category
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "predict data successfully!",
+      data: predictedProductId,
+    });
+
+    // res.json({ predicted_product_id: predictedProductId });
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
 module.exports = {
   txnReport,
   analyticsData,
+  predictProduct,
+  modelTrain,
 };

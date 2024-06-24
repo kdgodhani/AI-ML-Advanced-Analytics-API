@@ -8,6 +8,8 @@ const { validateBody, validateQuery } = require("../validations/joi.validator");
 const {
   txnReport,
   analyticsData,
+  predictProduct,
+  modelTrain,
 } = require("../controllers/report.controller");
 
 router.get(
@@ -22,6 +24,20 @@ router.get(
   // verifyToken,
   // validateBody(addProductSchema),
   analyticsData
+);
+
+router.get(
+  "/predictProduct",
+  // verifyToken,
+  // validateBody(addProductSchema),
+  predictProduct
+);
+
+router.get(
+  "/modelTrain",
+  // verifyToken,
+  // validateBody(addProductSchema),
+  modelTrain
 );
 
 module.exports = router;
