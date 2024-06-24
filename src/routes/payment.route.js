@@ -7,13 +7,31 @@ const { addProductSchema } = require("../validations/product.validation");
 
 const { validateBody, validateQuery } = require("../validations/joi.validator");
 
-const { addProduct } = require("../controllers/product.controller");
+const {
+  paymentCheckout,
+  addFakeData,
+  txnReport,
+} = require("../controllers/payment.controller");
 
 router.post(
   "/checkOut",
   verifyToken,
   validateBody(addProductSchema),
-  addProduct
+  paymentCheckout
+);
+
+router.get(
+  "/addData",
+  // verifyToken,
+  // validateBody(addProductSchema),
+  addFakeData
+);
+
+router.get(
+  "/txnReport",
+  // verifyToken,
+  // validateBody(addProductSchema),
+  txnReport
 );
 
 module.exports = router;

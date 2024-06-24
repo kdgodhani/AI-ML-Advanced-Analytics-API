@@ -5,12 +5,12 @@ const transactionSchema = new Schema(
   {
     user_id: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      // ref: "User",
       required: true,
     },
     order_id: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      // ref: "Order",
       required: true,
     },
     txn_amount: {
@@ -24,7 +24,7 @@ const transactionSchema = new Schema(
     },
     payment_method: {
       type: String,
-      enum: ["COD", "UPI", "Debit Card", "creadit Card"],
+      enum: ["COD", "UPI", "Debit Card", "Credit Card"],
       required: true,
     },
     txn_date: {
