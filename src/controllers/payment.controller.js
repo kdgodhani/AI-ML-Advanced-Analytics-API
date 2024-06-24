@@ -205,8 +205,78 @@ const txnReport = async (req, res) => {
   }
 };
 
+const analyticsData = async (req, res) => {
+  try {
+    const transactionData = await Transaction.aggregate([
+      {
+        $lookup: {
+          from: "orders",
+          localField: "order_id",
+          foreignField: "_id",
+          as: "order",
+        },
+      },
+      {
+        $unwind: "$order",
+      },
+      {
+        $unwind: "$order.products",
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "order.products.product_id",
+          foreignField: "_id",
+          as: "productDetails",
+        },
+      },
+      {
+        $unwind: "$productDetails",
+      },
+      {
+        $project: {
+          txn_amount: "$txn_amount",
+          txn_status: "$txn_status",
+          payment_method: "$payment_method",
+          txn_id: "$_id",
+          txn_date: "$txn_date",
+          order_id: "$order._id",
+          product_id: "$order.products.product_id",
+          product_quantity: "$order.products.product_quantity",
+          order_status: "$order.order_status",
+          _id: "$productDetails._id",
+          name: "$productDetails.name",
+          // description: "$productDetails.description",
+          price: "$productDetails.price",
+          quantity: "$productDetails.quantity",
+          category: "$productDetails.category",
+          seller_name: "$productDetails.seller_name",
+          reviews: "$productDetails.reviews",
+          image: "$productDetails.image",
+        },
+      },
+    ]).exec();
+
+    if (!transactionData.length) {
+      return res.status(404).json({ message: "Transaction data  not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "report data fetched !! ",
+      data: transactionData,
+    });
+
+    // res.json(transactionData[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   paymentCheckout,
   addFakeData,
   txnReport,
+  analyticsData,
 };

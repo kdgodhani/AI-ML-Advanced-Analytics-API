@@ -11,6 +11,7 @@ const {
   paymentCheckout,
   addFakeData,
   txnReport,
+  analyticsData,
 } = require("../controllers/payment.controller");
 
 router.post(
@@ -32,6 +33,13 @@ router.get(
   // verifyToken,
   // validateBody(addProductSchema),
   txnReport
+);
+
+router.get(
+  "/analyticsData",
+  // verifyToken,
+  // validateBody(addProductSchema),
+  analyticsData
 );
 
 module.exports = router;
