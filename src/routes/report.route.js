@@ -3,27 +3,25 @@ const express = require("express");
 const router = express.Router();
 const { verifyToken, verifyAdmin } = require("../middlewares/auth");
 
-const { addProductSchema } = require("../validations/product.validation");
-
 const { validateBody, validateQuery } = require("../validations/joi.validator");
 
 const {
-  paymentCheckout,
-  addFakeData,
-} = require("../controllers/payment.controller");
+  txnReport,
+  analyticsData,
+} = require("../controllers/report.controller");
 
-router.post(
-  "/checkOut",
-  verifyToken,
+router.get(
+  "/txnReport",
+  // verifyToken,
   // validateBody(addProductSchema),
-  paymentCheckout
+  txnReport
 );
 
 router.get(
-  "/addData",
+  "/analyticsData",
   // verifyToken,
   // validateBody(addProductSchema),
-  addFakeData
+  analyticsData
 );
 
 module.exports = router;

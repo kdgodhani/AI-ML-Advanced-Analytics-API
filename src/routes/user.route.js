@@ -20,6 +20,10 @@ const {
   modifyUserDetail,
 } = require("../controllers/user.controller");
 
+
+const report = require("./report.route");
+router.use("/admin/report", report);
+
 router.post(
   "/register",
   // verifyToken,
