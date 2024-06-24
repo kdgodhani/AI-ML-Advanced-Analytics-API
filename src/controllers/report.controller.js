@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Transaction = require("../models/transaction");
 const Order = require("../models/order");
+const Product = require("../models/product");
 const cron = require("node-cron");
 
 let {
@@ -263,10 +264,19 @@ const predictProduct = async (req, res, next) => {
       category
     );
 
+    let productData = await Product.findById(predictedProductId);
+    if (!productData) {
+      return res.status(200).json({
+        success: false,
+        message: "Currently Not Found any peridiction !",
+        data: predictedProductId,
+      });
+    }
+
     return res.status(200).json({
       success: true,
       message: "predict data successfully!",
-      data: predictedProductId,
+      data: productData,
     });
 
     // res.json({ predicted_product_id: predictedProductId });

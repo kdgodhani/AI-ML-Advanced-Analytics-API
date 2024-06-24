@@ -63,8 +63,7 @@ const analyticsDataFn = async () => {
   }
 };
 
-let model;
-let productIds;
+
 
 let transactions = [
   {
@@ -164,40 +163,37 @@ let transactions = [
   },
 ];
 
-// Load transaction data for model training
+let model;
+let productIds = [];
+let categoryIds = [];
 
 async function loadTransactions() {
-  //   const transactions = await analyticsDataFn();
+  const transactions = await analyticsDataFn();
 
-  //   console.log(transactions, "transactions");
   return transactions.map((transaction) => ({
     txn_amount: transaction.txn_amount,
     payment_method: transaction.payment_method,
-    product_id: transaction.product_id,
+    product_id: transaction.product_id.toString(),
     category: transaction.category,
   }));
 }
 
 async function trainModel(data) {
   const productIdsSet = new Set(data.map((item) => item.product_id));
-  productIds = Array.from(productIdsSet); // Save product IDs for prediction
+  productIds = Array.from(productIdsSet);
 
-  //   const categoryIdsSet = new Set(data.map((item) => item.category));
-  const categoryIdsArray = Array.from(
-    new Set(data.map((item) => item.category))
-  );
+  const categoryIdsSet = new Set(data.map((item) => item.category));
+  categoryIds = Array.from(categoryIdsSet);
 
   const encodedData = data.map((item) => ({
     txn_amount: item.txn_amount,
     payment_method: item.payment_method === "Credit Card" ? 1 : 0,
     product_id: productIds.indexOf(item.product_id),
-    category: categoryIdsArray.indexOf(item.category),
+    category: categoryIds.indexOf(item.category),
   }));
 
-  // Shuffle data
   tf.util.shuffle(encodedData);
 
-  // Split data into features and labels
   const xs = encodedData.map((item) => [
     item.txn_amount,
     item.payment_method,
@@ -206,27 +202,19 @@ async function trainModel(data) {
   ]);
   const ys = encodedData.map((item) => item.product_id);
 
-  // Convert to TensorFlow tensors
   const xTensor = tf.tensor2d(xs);
   const yTensor = tf.oneHot(tf.tensor1d(ys, "int32"), productIds.length);
 
-  // Define the model architecture
   model = tf.sequential();
-  model.add(
-    tf.layers.dense({ units: 10, activation: "relu", inputShape: [4] })
-  );
-  model.add(
-    tf.layers.dense({ units: productIds.length, activation: "softmax" })
-  );
+  model.add(tf.layers.dense({ units: 10, activation: "relu", inputShape: [4] }));
+  model.add(tf.layers.dense({ units: productIds.length, activation: "softmax" }));
 
-  // Compile the model
   model.compile({
     optimizer: tf.train.adam(),
     loss: "categoricalCrossentropy",
     metrics: ["accuracy"],
   });
 
-  // Train the model
   await model.fit(xTensor, yTensor, {
     epochs: 50,
     validationSplit: 0.2,
@@ -236,36 +224,30 @@ async function trainModel(data) {
   console.log("Model trained!");
 }
 
-// Predict product demand
 async function predictDemand(txn_amount, payment_method, product_id, category) {
   if (!model) {
     console.error("Model not loaded!");
     return null;
   }
 
-  // Encode input data
   const encodedData = [
     {
       txn_amount,
       payment_method: payment_method === "Credit Card" ? 1 : 0,
       product_id: productIds.indexOf(product_id),
-      category,
+      category: categoryIds.indexOf(category),
     },
   ];
 
-  // Predict using the model
   const prediction = model.predict(
-    tf.tensor2d(
-      encodedData.map((item) => [
-        item.txn_amount,
-        item.payment_method,
-        item.product_id,
-        item.category,
-      ])
-    )
+    tf.tensor2d(encodedData.map((item) => [
+      item.txn_amount,
+      item.payment_method,
+      item.product_id,
+      item.category,
+    ]))
   );
 
-  // Decode prediction
   const predictedIndex = prediction.argMax(1).dataSync()[0];
   const predictedProductId = productIds[predictedIndex];
 
@@ -277,3 +259,16 @@ module.exports = {
   trainModel,
   predictDemand,
 };
+  
+// async function initializeModel() {
+//   const transactions = await loadTransactions();
+//   await trainModel(transactions);
+// }
+// initializeModel()
+//   .then(() => {
+//     console.log("Model initialized and trained!");
+//   })
+//   .catch((error) => {
+//     console.error("Failed to initialize and train model:", error);
+//   });
+
