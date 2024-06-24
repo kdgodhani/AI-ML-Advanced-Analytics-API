@@ -1,21 +1,44 @@
 const { getProductByIds } = require("../controllers/product.controller");
 const mongoose = require("mongoose");
 const Transaction = require("../models/transaction");
+const Order = require("../models/order");
 const cron = require("node-cron");
 const { faker } = require("@faker-js/faker");
 
 const { STRIPE_SECRET_KEY, REACT_BASE_URL } = process.env;
 const stripe = require("stripe")(STRIPE_SECRET_KEY);
 
-const paymentCheckout = async (req, res) => {
+const paymentCheckout = async (req, res, next) => {
   try {
-    const productRequests = req.body;
+    const { productsData } = req.body;
+
+    let { role, id } = req.user;
+
+    let orderData = await Order({
+      user_id: id,
+      products: productsData,
+      order_status: "Pending",
+    });
+
     const products = [];
-    for (const request of productRequests) {
-      const productDoc = await getProductByIds(request.id);
+    let totalAmount = 0;
+
+    for (const request of productsData) {
+      const productDoc = await getProductByIds(request.product_id);
       const product = productDoc.toObject();
-      products.push({ ...product, quantity: request.quantity });
+      products.push({
+        product_id: request.product_id,
+        product_quantity: request.product_quantity,
+        ...product,
+      });
+      totalAmount += product.price * request.product_quantity;
     }
+
+    orderData.products = products;
+    orderData.total_amount = totalAmount;
+
+    // console.log(orderData, "orderData -- ");
+    await orderData.save();
 
     // Map the products array to the format required by Stripe
     const lineItems = products.map((product) => ({
@@ -24,20 +47,33 @@ const paymentCheckout = async (req, res) => {
         product_data: {
           name: product.name,
           description: product.description,
-          images: [product.Image],
+          images: [product.image],
         },
         unit_amount: product.price * 100, // Stripe expects the amount in cents
       },
       quantity: product.quantity,
     }));
 
+    let orderId = orderData.id;
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
-      success_url: `${REACT_BASE_URL}/payment/success`,
-      cancel_url: `${REACT_BASE_URL}/payment/failure`,
+      success_url: `${REACT_BASE_URL}/payment/success?orderId=${orderId}`,
+      cancel_url: `${REACT_BASE_URL}/payment/failure?orderId=${orderId}`,
     });
+
+    let txnData = await Transaction({
+      user_id: id,
+      order_id: orderId,
+      txn_amount: totalAmount,
+      txn_status: "Pending",
+      payment_method: "Credit Card",
+      txn_date: Date.now(),
+      comment: "redirect Stripe page ",
+    });
+
+    await txnData.save();
 
     return res.status(200).json({
       success: true,

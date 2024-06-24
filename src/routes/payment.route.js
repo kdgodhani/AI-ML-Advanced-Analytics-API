@@ -16,7 +16,7 @@ const {
 router.post(
   "/checkOut",
   verifyToken,
-  validateBody(addProductSchema),
+  // validateBody(addProductSchema),
   paymentCheckout
 );
 
