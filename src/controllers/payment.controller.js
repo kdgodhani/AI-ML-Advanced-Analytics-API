@@ -55,7 +55,7 @@ const addFakeData = async (req, res) => {
     const transactionData = await Transaction.create({
       user_id: new mongoose.Types.ObjectId(),
       order_id: new mongoose.Types.ObjectId(),
-      txn_amount: faker.commerce.price(),
+      txn_amount: faker.commerce.price({ min: 2, max: 10 }),
       txn_status: faker.helpers.arrayElement(["Pending", "Success", "Failed"]),
       payment_method: faker.helpers.arrayElement([
         "COD",
@@ -108,6 +108,7 @@ const txnReport = async (req, res) => {
     ]);
 
     const paymentMethods = await Transaction.aggregate([
+      { $match: { txn_status: "Success" } },
       {
         $group: {
           _id: "$payment_method",
