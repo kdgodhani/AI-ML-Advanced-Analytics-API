@@ -298,7 +298,15 @@ const modelTrain = async (req, res, next) => {
 
 const predictProduct = async (req, res, next) => {
   try {
-    const { txn_amount, payment_method, product_id, category } = req.query;
+    const {
+      txn_amount,
+      payment_method,
+      product_id,
+      category,
+      order_status,
+      product_name,
+      product_quantity,
+    } = req.query;
 
     const transactions = await loadTransactions();
     await trainModel(transactions);
@@ -307,7 +315,10 @@ const predictProduct = async (req, res, next) => {
       Number(txn_amount),
       payment_method,
       product_id,
-      category
+      category,
+      order_status,
+      product_name,
+      Number(product_quantity)
     );
 
     let productData = await Product.findById(predictedProductId);
