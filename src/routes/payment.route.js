@@ -10,6 +10,8 @@ const { validateBody, validateQuery } = require("../validations/joi.validator");
 const {
   paymentCheckout,
   addFakeData,
+  generatePaymentLink,
+  verifyPaymentLink,
 } = require("../controllers/payment.controller");
 
 router.post(
@@ -21,9 +23,23 @@ router.post(
 
 router.get(
   "/addData",
-  // verifyToken,
+  // verifyAdmin,
   // validateBody(addProductSchema),
   addFakeData
+);
+
+router.post(
+  "/generateLink",
+  verifyAdmin,
+  // validateBody(addProductSchema),
+  generatePaymentLink
+);
+
+router.post(
+  "/verifyLink",
+  // verifyAdmin,
+  // validateBody(addProductSchema),
+  verifyPaymentLink
 );
 
 module.exports = router;

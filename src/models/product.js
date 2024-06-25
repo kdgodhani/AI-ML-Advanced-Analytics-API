@@ -43,6 +43,10 @@ const productSchema = new Schema(
     image: {
       type: String,
     },
+    is_dummy: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

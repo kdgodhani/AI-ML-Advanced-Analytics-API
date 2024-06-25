@@ -39,6 +39,10 @@ const transactionSchema = new Schema(
     is_active: {
       type: Boolean,
     },
+    is_dummy: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
