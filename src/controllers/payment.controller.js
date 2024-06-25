@@ -1,6 +1,7 @@
 const { getProductByIds } = require("../controllers/product.controller");
 const mongoose = require("mongoose");
 const Transaction = require("../models/transaction");
+const Product = require("../models/product");
 const Order = require("../models/order");
 const PaymentLink = require("../models/paymentLink");
 const cron = require("node-cron");
@@ -94,44 +95,6 @@ const paymentCheckout = async (req, res, next) => {
     next(error);
   }
 };
-
-const addFakeData = async (req, res) => {
-  try {
-    const transactionData = await Transaction.create({
-      user_id: new mongoose.Types.ObjectId(),
-      order_id: new mongoose.Types.ObjectId(),
-      txn_amount: faker.commerce.price({ min: 2, max: 10 }),
-      txn_status: faker.helpers.arrayElement(["Pending", "Success", "Failed"]),
-      payment_method: faker.helpers.arrayElement([
-        "COD",
-        "UPI",
-        "Debit Card",
-        "Credit Card",
-      ]),
-      txn_date: faker.date.recent(),
-      comment: faker.lorem.sentence(),
-    });
-
-    if (transactionData) {
-      return true;
-    }
-    return false;
-    // return res.status(200).json({
-    //   success: true,
-    //   message: "transaction add sucessfully ",
-    //   data: transactionData,
-    // });
-  } catch (error) {
-    console.log(error, "payment.controller -> addFakeData");
-  }
-};
-
-// now cron run every 55 minute
-// cron.schedule("*/55 * * * *", async () => {
-//   let cronRun = await addFakeData();
-
-//   console.log(cronRun, "cron Run status ---s ");
-// });
 
 const generatePaymentLink = async (req, res, next) => {
   const { orderId } = req.body;
@@ -269,6 +232,103 @@ const verifyPaymentLink = async (req, res, next) => {
     next(error);
   }
 };
+
+const categories = ["Electronics", "Mobiles", "Fashion", "Beauty"];
+
+const getCategoryName = (category) => {
+  switch (category) {
+    case "Electronics":
+      return `Electronics-${faker.number.int({
+        min: 10000000,
+        max: 199999999,
+      })}`;
+    case "Mobiles":
+      return `Mobiles-${faker.number.int({ min: 20000000, max: 299999999 })}`;
+    case "Fashion":
+      return `Fashion-${faker.number.int({ min: 30000000, max: 399999999 })}`;
+    case "Beauty":
+      return `Beauty-${faker.number.int({ min: 40000000, max: 499999999 })}`;
+    default:
+      return `Product-${faker.number.int({ min: 50000000, max: 599999999 })}`;
+  }
+};
+
+const addFakeData = async (req, res) => {
+  try {
+    const category = faker.helpers.arrayElement(categories);
+    const product = await Product.create({
+      name: getCategoryName(category),
+      description: faker.commerce.productDescription(),
+      price: faker.number.int({ min: 3, max: 20 }),
+      quantity: faker.number.int({ min: 10, max: 50 }),
+      category: category,
+      seller_name: faker.internet.userName(),
+      reviews: [],
+      is_dummy: true,
+      // image: faker.image.imageUrl(),
+    });
+
+    console.log(product.price, "this is product price ");
+
+    // With the same Product id we generate around 20 diffrent order and there transaction
+    for (let i = 0; i < 20; i++) {
+
+      // console.log(i,"i valueeee --- ")
+      const orderData = await Order.create({
+        user_id: new mongoose.Types.ObjectId(),
+        products: [
+          {
+            product_id: product.id,
+            product_quantity: 1,
+          },
+        ],
+        total_amount: product.price,
+        order_status: faker.helpers.arrayElement([
+          "Pending",
+          "Confirmed",
+          // "Shipped",
+          // "Delivered",
+          "Cancelled",
+        ]),
+        is_dummy: true,
+      });
+
+      // this is trxn data ==
+      const transactionData = await Transaction.create({
+        user_id: orderData.user_id,
+        order_id: orderData.id,
+        // txn_amount: faker.commerce.price({ min: 2, max: 10 }),
+        txn_amount: orderData.total_amount,
+        txn_status: faker.helpers.arrayElement([
+          "Pending",
+          "Success",
+          "Failed",
+        ]),
+        payment_method: faker.helpers.arrayElement([
+          "COD",
+          "UPI",
+          "Debit Card",
+          "Credit Card",
+        ]),
+        txn_date: faker.date.recent(),
+        comment: faker.lorem.sentence(),
+        is_dummy: true,
+      });
+    }
+
+    // return true;
+    return res.send(true);
+  } catch (error) {
+    console.log(error, "payment.controller -> addFakeData");
+  }
+};
+
+// now cron run every 55 minute
+// cron.schedule("*/55 * * * *", async () => {
+//   let cronRun = await addFakeData();
+
+//   console.log(cronRun, "cron Run status ---s ");
+// });
 
 module.exports = {
   paymentCheckout,
