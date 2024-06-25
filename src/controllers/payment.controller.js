@@ -11,6 +11,9 @@ const jwt = require("jsonwebtoken");
 const { STRIPE_SECRET_KEY, REACT_BASE_URL, JWT_TOKEN } = process.env;
 const stripe = require("stripe")(STRIPE_SECRET_KEY);
 
+const categories = ["Electronics", "Mobiles", "Fashion", "Beauty"];
+
+
 const paymentCheckout = async (req, res, next) => {
   try {
     const { productsData } = req.body;
@@ -233,7 +236,6 @@ const verifyPaymentLink = async (req, res, next) => {
   }
 };
 
-const categories = ["Electronics", "Mobiles", "Fashion", "Beauty"];
 
 const getCategoryName = (category) => {
   switch (category) {
