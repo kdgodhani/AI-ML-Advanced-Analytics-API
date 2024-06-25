@@ -10,13 +10,6 @@ let {
   predictDemand,
 } = require("../utils/mlModel");
 
-// now cron run every 55 minute
-cron.schedule("*/55 * * * *", async () => {
-  let cronRun = await addFakeData();
-
-  console.log(cronRun, "cron Run status ---s ");
-});
-
 const txnReport = async (req, res) => {
   try {
     let reportData = {};
