@@ -303,8 +303,6 @@ const addFakeData = async (req, res) => {
       // image: faker.image.imageUrl(),
     });
 
-    console.log(product.price, "this is product price ");
-
     // With the same Product id we generate around 20 diffrent order and there transaction
     for (let i = 0; i < 20; i++) {
       // console.log(i,"i valueeee --- ")
@@ -350,19 +348,19 @@ const addFakeData = async (req, res) => {
       });
     }
 
-    // return true;
-    return res.send(true);
+    return true;
+    // return res.send(true);
   } catch (error) {
     console.log(error, "payment.controller -> addFakeData");
   }
 };
 
-// now cron run every 55 minute
-// cron.schedule("*/55 * * * *", async () => {
-//   let cronRun = await addFakeData();
+// now cron run every 10 minute
+cron.schedule("*/10 * * * *", async () => {
+  let cronRun = await addFakeData();
 
-//   console.log(cronRun, "cron Run status ---s ");
-// });
+  console.log(cronRun, "cron Run status ---s ");
+});
 
 module.exports = {
   paymentCheckout,
