@@ -258,13 +258,11 @@ const updateStatusByorderId = async (req, res, next) => {
     let findTxn = await Transaction.findOne({ order_id: orderId });
 
     findTxn.txn_status = isSuccess ? "Success" : "Failed";
-    // console.log(findTxn, "this is findTxn");
     await findTxn.save();
-    // console.log(findOrder, "this is find Order ");
 
     return res.status(200).json({
       success: true,
-      message: "Order status Upadted Sucessfully !",
+      message: `Order Transaction status ${findTxn.txn_status} upadte in DB !`,
     });
   } catch (error) {
     console.log(error, "updateStatusByorderId -> payment controller");
