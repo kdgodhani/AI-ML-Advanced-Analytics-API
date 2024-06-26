@@ -56,7 +56,7 @@ const getAllProductList = async (req, res, next) => {
     if (!productList || productList.length == 0) {
       return res.status(404).json({
         success: false,
-        message: "User is already registered",
+        message: "Currently No Data Found !!",
       });
     }
 

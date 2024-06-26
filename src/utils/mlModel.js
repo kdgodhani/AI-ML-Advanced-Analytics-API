@@ -168,113 +168,156 @@ let orderStatusIds = [];
 let productNames = [];
 
 async function loadTransactions() {
-
-  let transactions = await analyticsDataFn()
-  return transactions.map(transaction => ({
-    txn_amount: transaction.txn_amount,
-    payment_method: transaction.payment_method,
-    product_id: transaction.product_id,
-    category: transaction.category,
-    product_name: transaction.name, 
-    order_status: transaction.order_status,
-    product_quantity: transaction.product_quantity,
-    price: transaction.price
-  }));
+  try {
+    let transactions = await analyticsDataFn();
+    return transactions.map((transaction) => ({
+      txn_amount: transaction.txn_amount,
+      payment_method: transaction.payment_method,
+      product_id: transaction.product_id,
+      category: transaction.category,
+      product_name: transaction.name,
+      order_status: transaction.order_status,
+      product_quantity: transaction.product_quantity,
+      price: transaction.price,
+    }));
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }
 
 async function trainModel(data) {
-  const productIdsSet = new Set(data.map((item) => item.product_id));
-  productIds = Array.from(productIdsSet);
+  try {
+    const productIdsSet = new Set(data.map((item) => item.product_id));
+    productIds = Array.from(productIdsSet);
 
-  const categoryIdsSet = new Set(data.map((item) => item.category));
-  categoryIds = Array.from(categoryIdsSet);
+    const categoryIdsSet = new Set(data.map((item) => item.category));
+    categoryIds = Array.from(categoryIdsSet);
 
-  const orderStatusIdsSet = new Set(data.map((item) => item.order_status));
-  orderStatusIds = Array.from(orderStatusIdsSet);
+    const orderStatusIdsSet = new Set(data.map((item) => item.order_status));
+    orderStatusIds = Array.from(orderStatusIdsSet);
 
-  const productNamesSet = new Set(data.map((item) => item.product_name));
-  productNames = Array.from(productNamesSet);
+    const productNamesSet = new Set(data.map((item) => item.product_name));
+    productNames = Array.from(productNamesSet);
 
-  const encodedData = data.map((item) => ({
-    txn_amount: item.txn_amount,
-    payment_method: item.payment_method === "Credit Card" ? 1 : 0,
-    product_id: productIds.indexOf(item.product_id),
-    category: categoryIds.indexOf(item.category),
-    order_status: orderStatusIds.indexOf(item.order_status),
-    product_name: productNames.indexOf(item.product_name),
-    product_quantity: item.product_quantity,
-    price: item.price
-  }));
+    const encodedData = data.map((item) => ({
+      txn_amount: item.txn_amount,
+      payment_method: item.payment_method === "Credit Card" ? 1 : 0,
+      product_id: productIds.indexOf(item.product_id),
+      category: categoryIds.indexOf(item.category),
+      order_status: orderStatusIds.indexOf(item.order_status),
+      product_name: productNames.indexOf(item.product_name),
+      product_quantity: item.product_quantity,
+      price: item.price,
+    }));
 
-  tf.util.shuffle(encodedData);
+    if (encodedData && encodedData.length > 0) {
+      tf.util.shuffle(encodedData);
 
-  const xs = encodedData.map((item) => [
-    item.txn_amount,
-    item.payment_method,
-    item.product_id,
-    item.category,
-    item.order_status,
-    item.product_name,
-    item.product_quantity,
-    item.price
-  ]);
-  
-  const ys = encodedData.map((item) => item.product_id);
+      console.log(encodedData, "encodedData");
 
-  const xTensor = tf.tensor2d(xs);
-  const yTensor = tf.oneHot(tf.tensor1d(ys, 'int32'), productIds.length);
+      const xs = encodedData.map((item) => [
+        item.txn_amount,
+        item.payment_method,
+        item.product_id,
+        item.category,
+        item.order_status,
+        item.product_name,
+        item.product_quantity,
+        item.price,
+      ]);
 
-  model = tf.sequential();
-  model.add(tf.layers.dense({ units: 10, activation: 'relu', inputShape: [xs[0].length] }));
-  model.add(tf.layers.dense({ units: productIds.length, activation: 'softmax' }));
+      const ys = encodedData.map((item) => item.product_id);
 
-  model.compile({
-    optimizer: tf.train.adam(),
-    loss: 'categoricalCrossentropy',
-    metrics: ['accuracy']
-  });
+      const xTensor = tf.tensor2d(xs);
+      const yTensor = tf.oneHot(tf.tensor1d(ys, "int32"), productIds.length);
 
-  await model.fit(xTensor, yTensor, {
-    epochs: 50,
-    validationSplit: 0.2,
-    callbacks: tf.callbacks.earlyStopping({ monitor: 'val_loss', patience: 5 })
-  });
+      model = tf.sequential();
+      model.add(
+        tf.layers.dense({
+          units: 10,
+          activation: "relu",
+          inputShape: [xs[0].length],
+        })
+      );
+      model.add(
+        tf.layers.dense({ units: productIds.length, activation: "softmax" })
+      );
 
-  console.log('Model trained and ready for predictions!');
+      model.compile({
+        optimizer: tf.train.adam(),
+        loss: "categoricalCrossentropy",
+        metrics: ["accuracy"],
+      });
+
+      await model.fit(xTensor, yTensor, {
+        epochs: 50,
+        validationSplit: 0.2,
+        callbacks: tf.callbacks.earlyStopping({
+          monitor: "val_loss",
+          patience: 5,
+        }),
+      });
+    }
+
+    console.log("Model trained and ready for predictions!");
+  } catch (error) {
+    console.error(error, "this is inside --- 261");
+    throw error;
+  }
 }
 
-async function predictDemand(txn_amount, payment_method, product_id, category, order_status, product_name, product_quantity) {
-  if (!model) {
-    console.error('Model not loaded!');
-    return null;
+async function predictDemand(
+  txn_amount,
+  payment_method,
+  product_id,
+  category,
+  order_status,
+  product_name,
+  product_quantity
+) {
+  try {
+    if (!model) {
+      console.error("Model not loaded!");
+      return null;
+    }
+
+    const encodedData = [
+      {
+        txn_amount,
+        payment_method: payment_method === "Credit Card" ? 1 : 0,
+        product_id: productIds.indexOf(product_id),
+        category: categoryIds.indexOf(category),
+        order_status: orderStatusIds.indexOf(order_status),
+        product_name: productNames.indexOf(product_name),
+        product_quantity,
+        price: 0, // Price is not used in prediction, so set to 0
+      },
+    ];
+
+    const prediction = model.predict(
+      tf.tensor2d(
+        encodedData.map((item) => [
+          item.txn_amount,
+          item.payment_method,
+          item.product_id,
+          item.category,
+          item.order_status,
+          item.product_name,
+          item.product_quantity,
+          item.price,
+        ])
+      )
+    );
+
+    const predictedIndex = prediction.argMax(1).dataSync()[0];
+    const predictedProductId = productIds[predictedIndex];
+
+    return predictedProductId;
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
-
-  const encodedData = [{
-    txn_amount,
-    payment_method: payment_method === 'Credit Card' ? 1 : 0,
-    product_id: productIds.indexOf(product_id),
-    category: categoryIds.indexOf(category),
-    order_status: orderStatusIds.indexOf(order_status),
-    product_name: productNames.indexOf(product_name),
-    product_quantity,
-    price: 0 // Price is not used in prediction, so set to 0
-  }];
-
-  const prediction = model.predict(tf.tensor2d(encodedData.map((item) => [
-    item.txn_amount,
-    item.payment_method,
-    item.product_id,
-    item.category,
-    item.order_status,
-    item.product_name,
-    item.product_quantity,
-    item.price
-  ])));
-
-  const predictedIndex = prediction.argMax(1).dataSync()[0];
-  const predictedProductId = productIds[predictedIndex];
-
-  return predictedProductId;
 }
 module.exports = {
   loadTransactions,
