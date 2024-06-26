@@ -12,6 +12,7 @@ const {
   addFakeData,
   generatePaymentLink,
   verifyPaymentLink,
+  updateStatusByorderId,
 } = require("../controllers/payment.controller");
 
 router.post(
@@ -40,6 +41,13 @@ router.post(
   // verifyAdmin,
   // validateBody(addProductSchema),
   verifyPaymentLink
+);
+
+router.post(
+  "/updateStatusByorderId",
+  // verifyAdmin,
+  // validateBody(addProductSchema),
+  updateStatusByorderId
 );
 
 module.exports = router;

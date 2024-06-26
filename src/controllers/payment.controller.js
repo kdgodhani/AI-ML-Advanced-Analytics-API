@@ -136,7 +136,7 @@ const generatePaymentLink = async (req, res, next) => {
 };
 
 const verifyPaymentLink = async (req, res, next) => {
-  const { token } = req.body;
+  const { token } = req.query;
   try {
     // Verify JWT token
     const decoded = jwt.verify(token, JWT_TOKEN);
@@ -147,7 +147,7 @@ const verifyPaymentLink = async (req, res, next) => {
       paymentLink.used ||
       paymentLink.expires_at < new Date()
     ) {
-      paymentLink.used = true;
+      // paymentLink.used = true;
       await paymentLink.save();
       return res.status(400).json({
         success: false,
@@ -238,6 +238,38 @@ const verifyPaymentLink = async (req, res, next) => {
   }
 };
 
+const updateStatusByorderId = async (req, res, next) => {
+  const { orderId, isSuccess } = req.body;
+  try {
+    let findOrder = await Order.findById(orderId);
+
+    if (!findOrder) {
+      return res.status(400).json({
+        success: false,
+        message: "Something wrong in DB",
+      });
+    }
+
+    // findOrder.txn_status = isSuccess ? "Success" :""
+    findOrder.order_status = isSuccess ? "Confirmed" : "Pending";
+    await findOrder.save();
+
+    let findTxn = await Transaction.findOne({ order_id: orderId });
+
+    findTxn.txn_status = isSuccess ? "Success" : "Failed";
+    // console.log(findTxn, "this is findTxn");
+    await findTxn.save();
+    // console.log(findOrder, "this is find Order ");
+
+    return res.status(200).json({
+      success: true,
+      message: "Order status Upadted Sucessfully !",
+    });
+  } catch (error) {
+    console.log(error, "updateStatusByorderId -> payment controller");
+    next(error);
+  }
+};
 
 const getCategoryName = (category) => {
   switch (category) {
@@ -276,7 +308,6 @@ const addFakeData = async (req, res) => {
 
     // With the same Product id we generate around 20 diffrent order and there transaction
     for (let i = 0; i < 20; i++) {
-
       // console.log(i,"i valueeee --- ")
       const orderData = await Order.create({
         user_id: new mongoose.Types.ObjectId(),
@@ -339,4 +370,5 @@ module.exports = {
   addFakeData,
   generatePaymentLink,
   verifyPaymentLink,
+  updateStatusByorderId,
 };
