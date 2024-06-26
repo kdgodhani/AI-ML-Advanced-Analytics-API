@@ -209,8 +209,8 @@ const verifyPaymentLink = async (req, res, next) => {
 
       await txnData.save();
 
-      // paymentLink.used = true;
-      // await paymentLink.save();
+      paymentLink.used = true;
+      await paymentLink.save();
 
       if (session && session.url) {
         return res.status(200).json({
