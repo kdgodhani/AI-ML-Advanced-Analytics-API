@@ -57,7 +57,7 @@ const verifyAdmin = async (req, res, next) => {
     // });
   } else {
     err.status = 400;
-    err.message = "Token i";
+    err.message = "Token is missing !";
     err.success = false;
     return res.status(err.status).json(err);
   }

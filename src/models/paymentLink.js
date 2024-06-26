@@ -1,11 +1,8 @@
 const mongoose = require("mongoose");
-const crypto = require("crypto");
-
-let uuid = crypto.randomUUID();
 
 const PaymentLinkSchema = new mongoose.Schema(
   {
-    link_id: { type: String, default: uuid, unique: true },
+    link_id: { type: String, unique: true },
     order_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Order",

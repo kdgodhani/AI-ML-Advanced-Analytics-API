@@ -7,12 +7,13 @@ const PaymentLink = require("../models/paymentLink");
 const cron = require("node-cron");
 const { faker } = require("@faker-js/faker");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+let uuid = crypto.randomUUID();
 
 const { STRIPE_SECRET_KEY, REACT_BASE_URL, JWT_TOKEN } = process.env;
 const stripe = require("stripe")(STRIPE_SECRET_KEY);
 
 const categories = ["Electronics", "Mobiles", "Fashion", "Beauty"];
-
 
 const paymentCheckout = async (req, res, next) => {
   try {
@@ -100,13 +101,14 @@ const paymentCheckout = async (req, res, next) => {
 };
 
 const generatePaymentLink = async (req, res, next) => {
-  const { orderId } = req.body;
+  const { orderId } = req.query;
   const expires_at = new Date();
   expires_at.setHours(expires_at.getHours() + 1);
 
   try {
     // Create a payment link
     const paymentLink = new PaymentLink({
+      link_id: faker.string.uuid(),
       order_id: orderId,
       expires_at,
     });

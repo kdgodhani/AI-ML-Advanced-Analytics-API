@@ -3,20 +3,26 @@ const express = require("express");
 const router = express.Router();
 const { verifyToken, verifyAdmin } = require("../middlewares/auth");
 
-const { addProductSchema } = require("../validations/product.validation");
-
-const { validateBody, validateQuery } = require("../validations/joi.validator");
-
-const { addProduct } = require("../controllers/product.controller");
+const {
+  getAllPendingOrders,
+  getOrdersByUserId,
+} = require("../controllers/order.controller");
 
 const payment = require("./payment.route");
 router.use("/payment", payment);
 
-router.post(
-  "/create",
-  verifyToken,
+router.get(
+  "/getAllPendingOrders",
+  verifyAdmin,
   //  validateBody(addProductSchema),
-  addProduct
+  getAllPendingOrders
+);
+
+router.get(
+  "/getByUserId",
+  verifyAdmin,
+  //  validateBody(addProductSchema),
+  getOrdersByUserId
 );
 
 module.exports = router;
