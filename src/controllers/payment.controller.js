@@ -67,7 +67,7 @@ const paymentCheckout = async (req, res, next) => {
       line_items: lineItems,
       mode: "payment",
       success_url: `${REACT_BASE_URL}/payment/success?orderId=${orderId}`,
-      cancel_url: `${REACT_BASE_URL}/payment/failure?orderId=${orderId}`,
+      cancel_url: `${REACT_BASE_URL}/payment/failed?orderId=${orderId}`,
     });
 
     let txnData = await Transaction({
@@ -194,7 +194,7 @@ const verifyPaymentLink = async (req, res, next) => {
         line_items: lineItems,
         mode: "payment",
         success_url: `${REACT_BASE_URL}/payment/success?orderId=${orderId}`,
-        cancel_url: `${REACT_BASE_URL}/payment/failure?orderId=${orderId}`,
+        cancel_url: `${REACT_BASE_URL}/payment/failed?orderId=${orderId}`,
       });
 
       let txnData = await Transaction({

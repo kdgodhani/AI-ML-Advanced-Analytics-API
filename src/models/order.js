@@ -40,7 +40,7 @@ const orderSchema = new Schema(
     },
     is_dummy: {
       type: Boolean,
-      default: false,
+      default: true,
     },
   },
   {

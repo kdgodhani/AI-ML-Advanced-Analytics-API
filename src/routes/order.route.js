@@ -6,6 +6,7 @@ const { verifyToken, verifyAdmin } = require("../middlewares/auth");
 const {
   getAllPendingOrders,
   getOrdersByUserId,
+  getTxnDoneOrder,
 } = require("../controllers/order.controller");
 
 const payment = require("./payment.route");
@@ -23,6 +24,13 @@ router.get(
   verifyAdmin,
   //  validateBody(addProductSchema),
   getOrdersByUserId
+);
+
+router.get(
+  "/getTxnDoneOrder",
+  verifyToken,
+  //  validateBody(addProductSchema),
+  getTxnDoneOrder
 );
 
 module.exports = router;
