@@ -12,19 +12,19 @@ const getAllPendingOrders = async (req, res, next) => {
         },
       },
       {
-        $unwind: "$products", // Unwind the products array to access each product individually
+        $unwind: "$products",
       },
       {
         $lookup: {
-          from: "products", // Name of the collection to join with
-          localField: "products.product_id", // Field from the current collection (Order)
-          foreignField: "_id", // Field from the referenced collection (Product)
-          as: "products.productInfo", // Name for the new embedded field in the products array
+          from: "products",
+          localField: "products.product_id",
+          foreignField: "_id",
+          as: "products.productInfo",
         },
       },
       {
         $addFields: {
-          "products.name": { $arrayElemAt: ["$products.productInfo.name", 0] }, // Add fields from productInfo
+          "products.name": { $arrayElemAt: ["$products.productInfo.name", 0] },
           "products.description": {
             $arrayElemAt: ["$products.productInfo.description", 0],
           },
@@ -135,7 +135,7 @@ const getTxnDoneOrder = async (req, res, next) => {
       },
       {
         $addFields: {
-          "products.name": { $arrayElemAt: ["$products.productInfo.name", 0] }, // Add fields from productInfo
+          "products.name": { $arrayElemAt: ["$products.productInfo.name", 0] },
           "products.description": {
             $arrayElemAt: ["$products.productInfo.description", 0],
           },

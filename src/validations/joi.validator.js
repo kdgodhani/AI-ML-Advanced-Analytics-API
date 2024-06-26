@@ -61,26 +61,9 @@ const validateParams = (schema) => {
     return next();
   };
 };
-
-const validateQueryOrBody = (schema) => {
-  return (req, res, next) => {
-    let response = {};
-    const error = validateObjectSchema({ ...req.query, ...req.body }, schema);
-    if (error) {
-      response.message = error;
-      response.success = false;
-      response.status = 400;
-
-      return res.status(response.status).send(response);
-    }
-    return next();
-  };
-};
-
 module.exports = {
   validateObjectSchema,
   validateBody,
   validateQuery,
   validateParams,
-  validateQueryOrBody,
 };

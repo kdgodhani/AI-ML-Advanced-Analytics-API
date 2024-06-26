@@ -14,28 +14,28 @@ const {
 
 router.get(
   "/txnReport",
-  // verifyToken,
+  verifyAdmin,
   // validateBody(addProductSchema),
   txnReport
 );
 
 router.get(
   "/analyticsData",
-  // verifyToken,
+  verifyAdmin,
   // validateBody(addProductSchema),
   analyticsData
 );
 
 router.get(
   "/predictProduct",
-  // verifyToken,
+  verifyToken,
   // validateBody(addProductSchema),
   predictProduct
 );
 
 router.get(
   "/modelTrain",
-  // verifyToken,
+  verifyToken,
   // validateBody(addProductSchema),
   modelTrain
 );

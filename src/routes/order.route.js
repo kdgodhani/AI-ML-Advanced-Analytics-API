@@ -21,7 +21,7 @@ router.get(
 
 router.get(
   "/getByUserId",
-  verifyAdmin,
+  verifyToken,
   //  validateBody(addProductSchema),
   getOrdersByUserId
 );
