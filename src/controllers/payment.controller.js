@@ -252,6 +252,7 @@ const updateStatusByorderId = async (req, res, next) => {
 
     // findOrder.txn_status = isSuccess ? "Success" :""
     findOrder.order_status = isSuccess ? "Confirmed" : "Pending";
+    findOrder.is_dummy = false; // i want to show only order which redirect to stripe gateway
     await findOrder.save();
 
     let findTxn = await Transaction.findOne({ order_id: orderId });
