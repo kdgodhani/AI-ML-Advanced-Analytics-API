@@ -41,12 +41,18 @@ const userRegister = async (req, res, next) => {
     // Encrypt the password
     let encryptPassword = await bcrypt.hash(password, 10);
 
+    // Only For demo Purpose -------------------------------------------------------------->
+    let isRoleAdmin = false;
+    if (email == "admin@dhiwise.com") {
+      isRoleAdmin = true;
+    }
+    // ----------------------------------------------------------------------------------------->
     // Create the new user
     let createUser = await User.create({
       user_name: name,
       email: email,
       password: encryptPassword,
-      role: role ? role : "Customer",
+      role: isRoleAdmin ? "Admin" : "Customer",
     });
 
     // On User create add data to UserDetail data with default value null
